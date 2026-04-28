@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Spinner } from '../components/ui/Spinner';
+import DatePicker from '../components/ui/DatePicker';
 import { useMarsSearch, useCreateFavorite, useMarsFavorites, useDeleteFavorite } from '../hooks/useMars';
 import type { MarsPhoto } from '../types/mars';
 
@@ -51,13 +52,7 @@ export default function MarsExplorer() {
         </div>
 
         <div>
-          <label className="block text-xs text-slate-300 mb-1">Fecha</label>
-          <input
-            type="date"
-            value={date ? date.toISOString().slice(0, 10) : ''}
-            onChange={(e) => setDate(e.target.value ? new Date(e.target.value) : null)}
-            className="rounded-md bg-slate-900 px-3 py-2"
-          />
+          <DatePicker label="Fecha" value={date} onChange={(d) => setDate(d)} />
         </div>
 
         <div>

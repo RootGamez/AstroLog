@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '../components/ui/Modal';
 import { Input } from '../components/ui/Input';
+import DatePicker from '../components/ui/DatePicker';
 import { TextArea } from '../components/ui/TextArea';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -88,11 +89,10 @@ export function RecordModal({ open, onClose, onSubmit, initialData = {}, isEdit 
           />
 
           {!isEdit ? (
-            <Input
+            <DatePicker
               label="Fecha APOD"
-              type="date"
               value={nasaDate}
-              onChange={(event) => setNasaDate(event.target.value)}
+              onChange={(d) => setNasaDate(d ? d.toISOString().slice(0, 10) : '')}
               required
             />
           ) : null}
