@@ -36,6 +36,11 @@ class MarsService:
             try:
                 resp = await client.get(url, params=params, timeout=15)
                 resp.raise_for_status()
+                ctype = resp.headers.get('content-type','')
+                if 'text/html' in ctype.lower():
+                    snippet = resp.text[:1000]
+                    logger.error('Unexpected HTML response from NASA API: %s', snippet)
+                    raise NasaServiceError('Unexpected HTML response from NASA API')
                 return resp.json()
             except httpx.HTTPStatusError as e:
                 # expose useful information for debugging while keeping key secret
