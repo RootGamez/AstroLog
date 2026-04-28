@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 from datetime import datetime, date
-from app.core.deps import get_db
+from app.core.deps import get_db, get_current_user
 from app.services.nasa_service import MarsService, NasaServiceError
 from app.crud.mars_exploration import create_favorite, get_favorites, delete_favorite
 from app.schemas.mars_exploration import MarsSearchResponse, MarsFavoriteCreate, MarsFavoriteResponse
+from app.db.models import User
 
 router = APIRouter(prefix="/api/mars", tags=["Mars Explorer"])
 
@@ -19,7 +20,11 @@ async def search_mars_photos(date: Optional[date] = Query(None), rover: str = Qu
         raise HTTPException(status_code=502, detail=str(e))
 
 @router.post("/favorites", response_model=MarsFavoriteResponse, status_code=status.HTTP_201_CREATED)
-def add_favorite(fav_in: MarsFavoriteCreate, db: Session = Depends(get_db)):
+def add_favorite(
+    fav_in: MarsFavoriteCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     db_fav = create_favorite(db, fav_in)
     return db_fav
 
@@ -28,7 +33,11 @@ def list_favorites(db: Session = Depends(get_db)):
     return get_favorites(db)
 
 @router.delete("/favorites/{fav_id}", response_model=MarsFavoriteResponse)
-def remove_favorite(fav_id: int, db: Session = Depends(get_db)):
+def remove_favorite(
+    fav_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     db_fav = delete_favorite(db, fav_id)
     if not db_fav:
         raise HTTPException(status_code=404, detail="Favorite not found")

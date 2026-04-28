@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import astrolog_record
+from app.api.endpoints.auth import router as auth_router
 from app.db.models import Base
 from app.core.deps import engine
 from app.core import config
@@ -26,4 +27,5 @@ app.add_middleware(
 from app.api.endpoints.mars import router as mars_router
 
 app.include_router(astrolog_record.router)
+app.include_router(auth_router)
 app.include_router(mars_router)
