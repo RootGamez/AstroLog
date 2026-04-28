@@ -1,27 +1,20 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Gallery from './pages/Gallery';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
-import { useState } from 'react';
-
-type FeatureKey = 'astrolog';
+import Astrolog from './pages/Astrolog';
 
 const queryClient = new QueryClient();
 
-
 function App() {
-  const [activeFeature, setActiveFeature] = useState<FeatureKey | null>(null);
-
-  const handleSelectFeature = (feature: FeatureKey) => {
-    setActiveFeature(feature);
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
-      {activeFeature === 'astrolog' ? (
-        <Gallery onBack={() => setActiveFeature(null)} />
-      ) : (
-        <Home onSelectFeature={handleSelectFeature} />
-      )}
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home onSelectFeature={() => window.location.assign('/astrolog')} />} />
+          <Route path="/astrolog" element={<Astrolog onBack={() => window.location.assign('/')} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
     </QueryClientProvider>
   );
 }
