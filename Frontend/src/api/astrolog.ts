@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AstrologRecord, AstrologRecordCreate, AstrologRecordUpdate } from '../types/astrologRecord.ts';
+import { getAuthToken } from '../auth/storage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -8,6 +9,14 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+api.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const fetchRecords = async (): Promise<AstrologRecord[]> => {

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { searchMars, createFavorite, fetchFavorites, deleteFavorite } from '../api/mars';
-import type { MarsSearchResponse, MarsFavoriteCreate } from '../types/mars';
+import type { MarsFavoriteCreate } from '../types/mars';
 
 export function useMarsSearch(params: { date?: string; rover?: string } | null) {
   return useQuery({
