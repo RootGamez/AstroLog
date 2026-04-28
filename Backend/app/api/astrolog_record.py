@@ -5,6 +5,7 @@ from app.schemas.astrolog_record import AstrologRecordCreate, AstrologRecordUpda
 from app.db.models import User
 from app.crud.astrolog_record import create_record, get_record, get_records, update_record, delete_record
 from app.core.deps import get_db, get_current_user
+from app.services.nasa_apod import NasaAPIError
 
 router = APIRouter(prefix="/records", tags=["Astrolog Records"])
 
@@ -17,6 +18,8 @@ async def create_astrolog_record(
     try:
         db_record = await create_record(db, record_in, owner_id=current_user.id)
         return db_record
+    except NasaAPIError as e:
+        raise HTTPException(status_code=502, detail=f"No se pudo obtener la informacion astronomica: {str(e)}")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

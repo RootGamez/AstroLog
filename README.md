@@ -187,6 +187,135 @@ Si 8000 o 5173 esta ocupado, cierra procesos previos o ajusta puertos.
 
 Con login/register exitoso, el frontend guarda JWT y habilita rutas protegidas.
 
+## Seguridad y Autenticacion (JWT + Password Hashing)
+
+### 1) Flujo de Autenticacion JWT
+
+El sistema implementa autenticacion stateless usando JSON Web Tokens (JWT). Aqui esta el flujo completo:
+
+**Registro:**
+1. Usuario envia email, nombre completo y contraseña a `POST /register`
+2. Backend valida que el email no exista ya
+3. Contraseña se **hashea** con pbkdf2_sha256 (nunca se guarda en texto plano)
+4. Se crea registro en tabla `users` con email + hash + is_active
+5. Backend genera JWT token con el user_id y tiempo de expiracion (default 60 min)
+6. Frontend recibe token + datos del usuario y los guarda en localStorage
+
+**Login:**
+1. Usuario envia email + contraseña a `POST /login`
+2. Backend busca usuario por email
+3. Verifica que contraseña coincida con el hash guardado
+4. Si OK, genera nuevo JWT token
+5. Frontend recibe token y lo guarda en localStorage
+
+**Rutas Protegidas:**
+1. Frontend agregua el JWT a cada request protegido en header `Authorization: Bearer <token>`
+2. Backend valida que el token sea valido y no haya expirado
+3. Si token no existe o es invalido → respuesta 401 Unauthorized
+4. Si OK, extrae user_id del token y procesa la request
+
+### 2) Hash de Contraseñas: pbkdf2_sha256
+
+Las contraseñas **nunca** se guardan en texto plano. Usamos `pbkdf2_sha256`:
+
+- **Algoritmo:** PBKDF2 (Password-Based Key Derivation Function 2) con SHA256
+- **Libreria:** passlib (Python)
+- **Ventajas:**
+  - No hay limite de longitud de contraseña (a diferencia de bcrypt que tiene 72 bytes)
+  - Iteraciones configurables para resistir ataques de fuerza bruta
+  - Cada contraseña genera un salt unico (no reversible)
+  - Rainbow tables son inefectivas porque cada hash es distinto
+
+**Implementacion:**
+```python
+# Backend/app/core/security.py
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+
+# Para guardar: 
+hashed_password = pwd_context.hash(user_password)
+
+# Para verificar:
+is_correct = pwd_context.verify(plain_password, hashed_password)
+```
+
+Si un atacante obtiene acceso a la base de datos, solo ve hashes, nunca contraseñas reales.
+
+### 3) Gestion de Sesion (localStorage + Interceptores)
+
+El frontend mantiene la sesion sin necesidad de servidor:
+
+**Almacenamiento:**
+- JWT token se guarda en `localStorage` bajo la clave `auth_token`
+- Tambien se guarda objeto `user` con id, email, full_name bajo `auth_user`
+- `localStorage` persiste entre refreshes de pagina
+
+**Inyeccion de Token:**
+- Axios interceptor (`Frontend/src/api/astrolog.ts` y `Frontend/src/api/mars.ts`) 
+- Automaticamente agrega `Authorization: Bearer <token>` a cada request
+- No necesitas agregar header manualmente en cada llamada
+
+**Cierre de Sesion:**
+- Click en "Cerrar Sesión" limpia `localStorage` 
+- Limpia estado global de React Context
+- Redirige a `/login`
+
+### 4) Multiusuario Real (owner_id)
+
+Aunque el token valida **quien** eres, la seguridad de datos se aplica en CRUD:
+
+- Tabla `astrolog_records` tiene columna `owner_id` (FK a `users.id`)
+- Tabla `mars_explorations` tambien tiene `owner_id`
+- Backend SIEMPRE filtra por `owner_id = current_user.id`
+
+**Ejemplo:**
+```python
+# Backend/app/crud/astrolog_record.py
+def get_records(db: Session, owner_id: int):
+    return db.query(AstrologRecord).filter(
+        AstrologRecord.owner_id == owner_id  # <-- Solo datos del usuario actual
+    ).all()
+```
+
+Esto garantiza que Usuario A no pueda ver/editar/eliminar registros del Usuario B, incluso si intenta manipular IDs en requests.
+
+### 5) Mejores Practicas de Seguridad
+
+**En Produccion:**
+
+1. **JWT_SECRET_KEY**
+   - Cambia el valor por defecto en `.env`
+   - Usa valor aleatorio fuerte (minimo 32 caracteres)
+   - Nunca lo commits al repositorio (`.env` debe estar en `.gitignore`)
+
+2. **HTTPS Obligatorio**
+   - JWT se manda en header `Authorization`
+   - Sin HTTPS, token se transmite sin cifrado
+   - Siempre usa HTTPS en produccion
+
+3. **Token Expiration**
+   - Token expira en `ACCESS_TOKEN_EXPIRE_MINUTES` (default 60)
+   - Usuario debe reintentar login para obtener nuevo token
+   - Para sesiones largas, implementa refresh token (no incluido en este proyecto)
+
+4. **CORS Restrictivo**
+   - Limita a dominio(s) conocido(s)
+   - No uses `"*"` en produccion
+
+5. **Logging**
+   - Log intentos de login fallidos
+   - Detecta patrones sospechosos (ej: muchos intentos rapidos)
+   - Implementa rate limiting si es necesario
+
+**Troubleshooting de Auth:**
+
+| Error | Causa | Solucion |
+|-------|-------|----------|
+| 401 Unauthorized | Token expirado o invalido | Usuario debe hacer login de nuevo |
+| 403 Forbidden | Usuario no tiene permisos para recurso | Verifica que sea el owner del recurso |
+| "CORS blocked" + 500 backend | Error real en backend, no CORS | Revisa `docker-compose logs backend` |
+
 ## Estado esperado al finalizar setup
 
 - Backend respondiendo en `http://localhost:8000`

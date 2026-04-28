@@ -1,13 +1,10 @@
 from sqlalchemy.orm import Session
 from app.db.models import AstrologRecord
 from app.schemas.astrolog_record import AstrologRecordCreate, AstrologRecordUpdate
-from app.services.nasa_apod import fetch_apod_data, NasaAPIError
+from app.services.nasa_apod import fetch_apod_data
 
 async def create_record(db: Session, record_in: AstrologRecordCreate, owner_id: int):
-    try:
-        apod_data = await fetch_apod_data(record_in.nasa_date)
-    except NasaAPIError as e:
-        raise ValueError(f"No se pudo obtener la información astronómica: {str(e)}")
+    apod_data = await fetch_apod_data(record_in.nasa_date)
 
     db_record = AstrologRecord(
         owner_id=owner_id,
