@@ -18,4 +18,7 @@ app.add_middleware(
 	allow_headers=["*"],
 )
 
+from app.api.endpoints.mars import router as mars_router
+
 app.include_router(astrolog_record.router)
+app.include_router(mars_router)
