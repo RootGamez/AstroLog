@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Textarea, Button, Badge } from '@heroui/react';
+import { Modal } from '../components/ui/Modal';
+import { Input } from '../components/ui/Input';
+import { TextArea } from '../components/ui/TextArea';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 import type { AstrologRecordCreate, AstrologRecordUpdate, AstrologRecord } from '../types/astrologRecord.ts';
 
 interface RecordModalProps {
@@ -57,7 +61,7 @@ export function RecordModal({ open, onClose, onSubmit, initialData = {}, isEdit 
             required
           />
         )}
-        <Textarea
+        <TextArea
           label="Nota Personal"
           value={personalNote}
           onChange={e => setPersonalNote(e.target.value)}

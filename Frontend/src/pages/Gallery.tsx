@@ -3,7 +3,8 @@ import { RecordCard } from '../components/RecordCard';
 import { RecordModal } from '../components/RecordModal';
 import { useAstrologRecords, useCreateRecord, useUpdateRecord, useDeleteRecord } from '../hooks/useAstrologRecords';
 import type { AstrologRecord, AstrologRecordCreate, AstrologRecordUpdate } from '../types/astrologRecord.ts';
-import { Button, Spinner } from '@heroui/react';
+import { Button } from '../components/ui/Button';
+import { Spinner } from '../components/ui/Spinner';
 
 export default function Gallery() {
   const { data: records, isLoading, isError } = useAstrologRecords();
