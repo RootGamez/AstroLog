@@ -3,11 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import astrolog_record
 from app.db.models import Base
 from app.core.deps import engine
+from app.core import config
+import logging
 
 # Crear tablas si no existen (solo para desarrollo)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Astrolog: Tu Bitácora Estelar")
+
+if config.is_using_demo_key():
+	logging.getLogger("uvicorn.error").warning("NASA_API_KEY not configured or using DEMO_KEY — consider setting a real key in the environment.")
 
 # Habilitar CORS para desarrollo
 app.add_middleware(
