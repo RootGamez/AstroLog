@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react';
+import { Button } from '../components/ui/Button';
 
 export default function Home({ onEnter }: { onEnter: () => void }) {
   return (

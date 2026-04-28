@@ -43,6 +43,15 @@ export default function Gallery() {
     }
   };
 
+  const handleModalSubmit = (data: AstrologRecordCreate | AstrologRecordUpdate) => {
+    if (editRecord) {
+      handleUpdate(data as AstrologRecordUpdate);
+      return;
+    }
+
+    handleCreate(data as AstrologRecordCreate);
+  };
+
   return (
     <div className="container mx-auto py-8 px-2">
       <div className="flex justify-between items-center mb-6">
@@ -70,7 +79,7 @@ export default function Gallery() {
       <RecordModal
         open={modalOpen}
         onClose={() => { setModalOpen(false); setEditRecord(null); }}
-        onSubmit={editRecord ? handleUpdate : handleCreate}
+        onSubmit={handleModalSubmit}
         initialData={editRecord || {}}
         isEdit={!!editRecord}
         loading={createMutation.isPending || updateMutation.isPending}

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchRecords, createRecord, updateRecord, deleteRecord } from '../api/astrolog';
-import type { AstrologRecord, AstrologRecordCreate, AstrologRecordUpdate } from '../types/astrologRecord.ts';
+import type { AstrologRecord, AstrologRecordUpdate } from '../types/astrologRecord.ts';
 
 export function useAstrologRecords() {
   return useQuery<AstrologRecord[]>({
