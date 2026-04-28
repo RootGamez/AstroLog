@@ -5,8 +5,13 @@ import { useAstrologRecords, useCreateRecord, useUpdateRecord, useDeleteRecord }
 import type { AstrologRecord, AstrologRecordCreate, AstrologRecordUpdate } from '../types/astrologRecord.ts';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
+import { Starfield } from '../components/layout/Starfield';
 
-export default function Gallery() {
+interface GalleryProps {
+  onBack?: () => void;
+}
+
+export default function Gallery({ onBack }: GalleryProps) {
   const { data: records, isLoading, isError } = useAstrologRecords();
   const createMutation = useCreateRecord();
   const updateMutation = useUpdateRecord();
@@ -28,12 +33,15 @@ export default function Gallery() {
 
   const handleUpdate = (data: AstrologRecordUpdate) => {
     if (editRecord) {
-      updateMutation.mutate({ id: editRecord.id, data }, {
-        onSuccess: () => {
-          setEditRecord(null);
-          setModalOpen(false);
-        },
-      });
+      updateMutation.mutate(
+        { id: editRecord.id, data },
+        {
+          onSuccess: () => {
+            setEditRecord(null);
+            setModalOpen(false);
+          },
+        }
+      );
     }
   };
 
@@ -53,37 +61,76 @@ export default function Gallery() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-2">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Astrolog: Tu Bitácora Estelar</h1>
-        <Button color="primary" onClick={() => { setEditRecord(null); setModalOpen(true); }}>
-          Nuevo Registro
-        </Button>
-      </div>
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64"><Spinner size="lg" /></div>
-      ) : isError ? (
-        <div className="text-red-500">Error al cargar los registros.</div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {records && records.length > 0 ? records.map(record => (
-            <RecordCard
-              key={record.id}
-              record={record}
-              onEdit={() => handleEdit(record)}
-              onDelete={() => handleDelete(record.id)}
-            />
-          )) : <div className="col-span-full text-center text-gray-400">No hay registros aún.</div>}
-        </div>
-      )}
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_15%_15%,#0f2f68_0%,transparent_30%),radial-gradient(circle_at_90%_0%,#1e3a8a_0%,transparent_35%),#020617] text-slate-100">
+      <Starfield density={140} />
+      <section className="relative mx-auto w-full max-w-[1440px] px-4 py-8 md:px-8 md:py-10">
+        <header className="mb-8 rounded-2xl border border-indigo-700/40 bg-slate-950/65 p-6 shadow-xl backdrop-blur-md">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/80">Modulo activo</p>
+              <h1 className="mt-1 text-3xl font-bold text-white md:text-4xl">Astrolog · Tu Bitacora Estelar</h1>
+              <p className="mt-2 max-w-2xl text-sm text-slate-300 md:text-base">
+                Administra tus entradas personales y conectalas con el APOD diario de NASA en una galeria moderna y responsive.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {onBack ? (
+                <Button variant="outline" onClick={onBack}>
+                  Volver al inicio
+                </Button>
+              ) : null}
+              <Button
+                color="primary"
+                onClick={() => {
+                  setEditRecord(null);
+                  setModalOpen(true);
+                }}
+              >
+                Nuevo registro
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {isLoading ? (
+          <div className="flex h-80 items-center justify-center rounded-2xl border border-indigo-800/50 bg-slate-950/55">
+            <Spinner size="lg" />
+          </div>
+        ) : isError ? (
+          <div className="rounded-2xl border border-rose-500/50 bg-rose-950/35 p-6 text-rose-200">
+            Error al cargar los registros. Verifica el backend e intenta nuevamente.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {records && records.length > 0 ? (
+              records.map((record) => (
+                <RecordCard
+                  key={record.id}
+                  record={record}
+                  onEdit={() => handleEdit(record)}
+                  onDelete={() => handleDelete(record.id)}
+                />
+              ))
+            ) : (
+              <div className="col-span-full rounded-2xl border border-indigo-800/40 bg-slate-950/40 p-10 text-center text-slate-300">
+                No hay registros aun. Crea el primero para comenzar tu bitacora estelar.
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
       <RecordModal
         open={modalOpen}
-        onClose={() => { setModalOpen(false); setEditRecord(null); }}
+        onClose={() => {
+          setModalOpen(false);
+          setEditRecord(null);
+        }}
         onSubmit={handleModalSubmit}
         initialData={editRecord || {}}
         isEdit={!!editRecord}
         loading={createMutation.isPending || updateMutation.isPending}
       />
-    </div>
+    </main>
   );
 }

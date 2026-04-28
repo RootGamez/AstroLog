@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from '../components/ui/Modal';
 import { Input } from '../components/ui/Input';
 import { TextArea } from '../components/ui/TextArea';
@@ -23,96 +23,118 @@ export function RecordModal({ open, onClose, onSubmit, initialData = {}, isEdit 
   const [nasaDate, setNasaDate] = useState(initialData.nasa_date || '');
 
   useEffect(() => {
-    if (open) {
-      setUserTitle(initialData.user_title || '');
-      setPersonalNote(initialData.personal_note || '');
-      setTags(initialData.tags || []);
-      setNasaDate(initialData.nasa_date || '');
-    }
+    if (!open) return;
+
+    setUserTitle(initialData.user_title || '');
+    setPersonalNote(initialData.personal_note || '');
+    setTags(initialData.tags || []);
+    setNasaDate(initialData.nasa_date || '');
+    setTagInput('');
   }, [open, initialData]);
 
   const handleAddTag = () => {
-    if (tagInput && !tags.includes(tagInput)) {
-      setTags([...tags, tagInput]);
-      setTagInput('');
-    }
+    const normalizedTag = tagInput.trim();
+    if (!normalizedTag || tags.includes(normalizedTag)) return;
+
+    setTags((prev) => [...prev, normalizedTag]);
+    setTagInput('');
   };
 
   const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag));
+    setTags((prev) => prev.filter((currentTag) => currentTag !== tag));
   };
 
   const handleSubmit = () => {
-    if (!userTitle || !personalNote || !nasaDate) return;
-    const data = isEdit
-      ? { personal_note: personalNote, tags }
-      : { user_title: userTitle, personal_note: personalNote, tags, nasa_date: nasaDate };
-    onSubmit(data);
+    if (isEdit) {
+      if (!personalNote.trim()) return;
+      onSubmit({ personal_note: personalNote.trim(), tags });
+      return;
+    }
+
+    if (!userTitle.trim() || !personalNote.trim() || !nasaDate) return;
+
+    onSubmit({
+      user_title: userTitle.trim(),
+      personal_note: personalNote.trim(),
+      tags,
+      nasa_date: nasaDate,
+    });
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Editar Registro' : 'Nuevo Registro'}>
-      <div className="flex flex-col gap-6 bg-gradient-to-br from-indigo-950 via-blue-900 to-black p-6 rounded-2xl border-2 border-indigo-700 shadow-[0_0_32px_4px_rgba(80,0,255,0.25)] relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none z-0">
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-2xl animate-pulse" />
-          <div className="absolute bottom-0 right-0 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl animate-pulse" />
-        </div>
-        <div className="relative z-10 flex flex-col gap-6">
-          {!isEdit && (
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Editar registro' : 'Nuevo registro estelar'}>
+      <div className="relative overflow-hidden rounded-2xl border border-indigo-700/50 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 p-6 shadow-2xl">
+        <div className="pointer-events-none absolute -left-12 -top-12 h-36 w-36 rounded-full bg-cyan-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-10 -right-8 h-32 w-32 rounded-full bg-indigo-500/25 blur-3xl" />
+
+        <div className="relative z-10 flex flex-col gap-5">
+          {!isEdit ? (
             <Input
-              label="Título"
+              label="Titulo"
               value={userTitle}
-              onChange={e => setUserTitle(e.target.value)}
+              onChange={(event) => setUserTitle(event.target.value)}
+              placeholder="Ej: Noche de observacion en el cerro"
               required
-              className="bg-black/60 border-indigo-700 text-indigo-100 placeholder-indigo-400 focus:ring-indigo-400"
             />
-          )}
+          ) : null}
+
           <TextArea
-            label="Nota Personal"
+            label="Nota personal"
             value={personalNote}
-            onChange={e => setPersonalNote(e.target.value)}
+            onChange={(event) => setPersonalNote(event.target.value)}
+            placeholder="Escribe lo que este evento significa para ti"
             required
-            className="bg-black/60 border-indigo-700 text-indigo-100 placeholder-indigo-400 focus:ring-indigo-400"
+            rows={5}
           />
-          {!isEdit && (
+
+          {!isEdit ? (
             <Input
-              label="Fecha (YYYY-MM-DD)"
+              label="Fecha APOD"
               type="date"
               value={nasaDate}
-              onChange={e => setNasaDate(e.target.value)}
+              onChange={(event) => setNasaDate(event.target.value)}
               required
-              className="bg-black/60 border-indigo-700 text-indigo-100 placeholder-indigo-400 focus:ring-indigo-400"
             />
-          )}
+          ) : null}
+
           <div>
-            <label className="block text-indigo-200 text-sm font-semibold mb-1">Agregar Tag</label>
-            <div className="flex gap-2 items-center">
+            <label className="mb-2 block text-sm font-medium text-indigo-100">Tags</label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
               <Input
                 value={tagInput}
-                onChange={e => setTagInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' ? (e.preventDefault(), handleAddTag()) : undefined}
-                className="bg-black/60 border-indigo-700 text-indigo-100 placeholder-indigo-400 focus:ring-indigo-400 flex-1"
+                onChange={(event) => setTagInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter') return;
+                  event.preventDefault();
+                  handleAddTag();
+                }}
+                placeholder="Ej: cumpleanos, viaje, telescopio"
+                containerClassName="flex-1"
               />
-              <Button size="sm" onClick={handleAddTag} className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md hover:from-indigo-500 hover:to-blue-400">Agregar</Button>
+              <Button size="sm" onClick={handleAddTag}>
+                Agregar tag
+              </Button>
             </div>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {tags.map(tag => (
-                <Badge
-                  key={tag}
-                  color="indigo"
-                  variant="subtle"
-                  onClick={() => handleRemoveTag(tag)}
-                  className="cursor-pointer bg-gradient-to-r from-indigo-700 via-blue-800 to-indigo-900 text-indigo-100 border border-indigo-500/40 shadow-[0_0_8px_2px_rgba(80,0,255,0.15)] hover:scale-105 transition-transform duration-150"
-                >
-                  {tag} <span className="ml-1 text-indigo-300">×</span>
-                </Badge>
-              ))}
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {tags.length > 0 ? (
+                tags.map((tag) => (
+                  <Badge key={tag} color="indigo" variant="subtle" onClick={() => handleRemoveTag(tag)}>
+                    {tag} <span className="ml-1">x</span>
+                  </Badge>
+                ))
+              ) : (
+                <p className="text-xs text-slate-400">No has agregado tags todavia.</p>
+              )}
             </div>
           </div>
-          <div className="flex justify-end gap-2 mt-6">
-            <Button variant="outline" onClick={onClose} disabled={loading} className="border-indigo-700 text-indigo-200 hover:bg-indigo-900/30">Cancelar</Button>
-            <Button variant="solid" color="primary" onClick={handleSubmit} loading={loading} className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-lg hover:from-indigo-500 hover:to-blue-400">
-              {isEdit ? 'Guardar Cambios' : 'Crear Registro'}
+
+          <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button variant="outline" onClick={onClose} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button variant="solid" color="primary" onClick={handleSubmit} loading={loading}>
+              {isEdit ? 'Guardar cambios' : 'Crear registro'}
             </Button>
           </div>
         </div>

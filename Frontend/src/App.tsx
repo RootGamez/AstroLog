@@ -2,19 +2,25 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Gallery from './pages/Gallery';
 import Home from './pages/Home';
 import { useState } from 'react';
-import './App.css';
+
+type FeatureKey = 'astrolog';
 
 const queryClient = new QueryClient();
 
 
 function App() {
-  const [showGallery, setShowGallery] = useState(false);
+  const [activeFeature, setActiveFeature] = useState<FeatureKey | null>(null);
+
+  const handleSelectFeature = (feature: FeatureKey) => {
+    setActiveFeature(feature);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
-      {showGallery ? (
-        <Gallery />
+      {activeFeature === 'astrolog' ? (
+        <Gallery onBack={() => setActiveFeature(null)} />
       ) : (
-        <Home onEnter={() => setShowGallery(true)} />
+        <Home onSelectFeature={handleSelectFeature} />
       )}
     </QueryClientProvider>
   );
