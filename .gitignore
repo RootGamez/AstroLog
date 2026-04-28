@@ -35,6 +35,9 @@ Thumbs.db
 *.sqlite3
 *.db
 
+# Ignore environment files in any subfolder
+**/.env
+
 # Coverage
 htmlcov/
 .coverage
@@ -48,3 +51,4 @@ htmlcov/
 
 # Ignore all pycache recursively
 **/__pycache__/
+
