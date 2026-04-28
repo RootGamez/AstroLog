@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Text, ARRAY, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Date, Text, ARRAY, Boolean, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -17,6 +17,7 @@ class AstrologRecord(Base):
     __tablename__ = "astrolog_records"
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     user_title = Column(String(100), nullable=False)
     personal_note = Column(Text, nullable=False)
     tags = Column(ARRAY(String), default=[])
@@ -31,6 +32,7 @@ class MarsExploration(Base):
     __tablename__ = "mars_explorations"
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     rover_name = Column(String(100), nullable=False)
     camera_name = Column(String(100), nullable=True)
     earth_date = Column(Date, nullable=False)

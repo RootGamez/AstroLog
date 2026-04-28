@@ -7,12 +7,16 @@ import type { AstrologRecord, AstrologRecordCreate, AstrologRecordUpdate } from 
 import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
 import { Starfield } from '../../components/layout/Starfield';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface GalleryProps {
 	onBack?: () => void;
 }
 
 function Astrolog({ onBack }: GalleryProps) {
+	const navigate = useNavigate();
+	const { logout } = useAuth();
 	const { data: records, isLoading, isError } = useAstrologRecords();
 	const createMutation = useCreateRecord();
 	const updateMutation = useUpdateRecord();
@@ -61,6 +65,11 @@ function Astrolog({ onBack }: GalleryProps) {
 		handleCreate(data as AstrologRecordCreate);
 	};
 
+	const handleLogout = () => {
+		logout();
+		navigate('/login', { replace: true });
+	};
+
 	return (
 		<main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_15%_15%,#0f2f68_0%,transparent_30%),radial-gradient(circle_at_90%_0%,#1e3a8a_0%,transparent_35%),#020617] text-slate-100">
 			<Starfield density={140} />
@@ -80,6 +89,9 @@ function Astrolog({ onBack }: GalleryProps) {
 									Volver al inicio
 								</Button>
 							) : null}
+							<Button variant="outline" color="danger" onClick={handleLogout}>
+								Cerrar sesion
+							</Button>
 							<Button
 								color="primary"
 								onClick={() => {

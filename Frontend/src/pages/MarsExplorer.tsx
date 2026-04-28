@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Spinner } from '../components/ui/Spinner';
 import DatePicker from '../components/ui/DatePicker';
 import { useMarsSearch, useCreateFavorite, useMarsFavorites, useDeleteFavorite } from '../hooks/useMars';
 import type { MarsPhoto } from '../types/mars';
+import { useAuth } from '../context/AuthContext';
 
 const ROVERS = [
   { label: 'Perseverance', value: 'perseverance' },
@@ -14,6 +16,8 @@ const ROVERS = [
 ];
 
 export default function MarsExplorer() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [rover, setRover] = useState<string>('perseverance');
   const [date, setDate] = useState<Date | null>(null);
   const [searchParams, setSearchParams] = useState<{ date?: string; rover?: string } | null>(null);
@@ -28,11 +32,22 @@ export default function MarsExplorer() {
     setSearchParams({ rover, date: date ? date.toISOString().slice(0, 10) : undefined });
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <main className="min-h-screen p-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold">Mars Explorer</h1>
-        <p className="text-sm text-slate-400">Busca fotos tomadas por los rovers de la NASA y guárdalas en favoritos.</p>
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Mars Explorer</h1>
+          <p className="text-sm text-slate-400">Busca fotos tomadas por los rovers de la NASA y guardalas en favoritos.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/home')}>Volver al inicio</Button>
+          <Button variant="outline" color="danger" onClick={handleLogout}>Cerrar sesion</Button>
+        </div>
       </header>
 
       <section className="mb-6 flex flex-wrap gap-4 items-end">

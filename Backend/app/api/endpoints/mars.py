@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional
-from datetime import datetime, date
+from datetime import date
 from app.core.deps import get_db, get_current_user
 from app.services.nasa_service import MarsService, NasaServiceError
 from app.crud.mars_exploration import create_favorite, get_favorites, delete_favorite
@@ -25,12 +25,15 @@ def add_favorite(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    db_fav = create_favorite(db, fav_in)
+    db_fav = create_favorite(db, fav_in, owner_id=current_user.id)
     return db_fav
 
 @router.get("/favorites", response_model=list[MarsFavoriteResponse])
-def list_favorites(db: Session = Depends(get_db)):
-    return get_favorites(db)
+def list_favorites(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return get_favorites(db, owner_id=current_user.id)
 
 @router.delete("/favorites/{fav_id}", response_model=MarsFavoriteResponse)
 def remove_favorite(
@@ -38,7 +41,7 @@ def remove_favorite(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    db_fav = delete_favorite(db, fav_id)
+    db_fav = delete_favorite(db, fav_id, owner_id=current_user.id)
     if not db_fav:
         raise HTTPException(status_code=404, detail="Favorite not found")
     return db_fav
