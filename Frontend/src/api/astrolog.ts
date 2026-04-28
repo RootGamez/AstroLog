@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AstrologRecord, AstrologRecordCreate, AstrologRecordUpdate } from '../types/astrologRecord';
+import type { AstrologRecord, AstrologRecordCreate, AstrologRecordUpdate } from '../types/astrologRecord.ts';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
